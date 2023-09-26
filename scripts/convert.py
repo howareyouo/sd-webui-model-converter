@@ -5,6 +5,7 @@ import safetensors.torch
 from torch import Tensor
 from modules import shared
 from modules import sd_models
+from modules import sysinfo
 
 # position_ids in clip is int64. model_ema.num_updates is int32
 dtypes_to_fp16 = {torch.float32, torch.float64, torch.bfloat16}
@@ -16,6 +17,7 @@ class MockModelInfo:
         self.filepath = model_path
         self.filename: str = os.path.basename(model_path)
         self.model_name: str = self.filename.split(".")[0]
+        self.filesize = os.path.getsize(model_path)
 
 
 def conv_fp16(t: Tensor):
@@ -96,10 +98,7 @@ def fix_model(model, fix_clip=False, force_position_id=False):
     return model
 
 
-def convert_warp(
-        model_name, model_path, directory,
-        *args
-):
+def convert_warp(model_name, model_path, directory, *args):
     if sum(map(bool, [model_name, model_path, directory])) != 1:
         print("[Converter] Check your inputs. Multiple input was set or missing input")
         return
@@ -136,7 +135,11 @@ def do_convert(model_info: MockModelInfo,
                checkpoint_formats,
                precision, conv_type, custom_name,
                unet_conv, text_encoder_conv, vae_conv, others_conv,
-               fix_clip, force_position_id, delete_known_junk_data):
+               fix_clip, force_position_id, delete_known_junk_data, size_limit):
+    
+    if size_limit and model_info.filesize <= float(size_limit) * 1024 ** 3:
+        return f"Skip small model: {model_info.filename} [{sysinfo.pretty_bytes(model_info.filesize)}]"
+
     if len(checkpoint_formats) == 0:
         return "Error: at least choose one model save format"
 

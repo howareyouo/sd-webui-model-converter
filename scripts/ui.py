@@ -17,21 +17,15 @@ def add_tab():
                 with gr.Tabs():
                     with gr.TabItem(label='Single process'):
                         with gr.Row():
-                            model_name = gr.Dropdown(sd_models.checkpoint_tiles(),
-                                                     elem_id="model_converter_model_name",
-                                                     label="Model")
-                            create_refresh_button(model_name, sd_models.list_models,
-                                                  lambda: {"choices": sd_models.checkpoint_tiles()},
-                                                  "refresh_checkpoint_Z")
+                            model_name = gr.Dropdown(sd_models.checkpoint_tiles(), elem_id="model_converter_model_name", label="Model", allow_custom_value=True)
+                            create_refresh_button(model_name, sd_models.list_models, lambda: {"choices": sd_models.checkpoint_tiles()}, "refresh_checkpoint_Z")
                         custom_name = gr.Textbox(label="Custom Name (Optional)")
 
                     with gr.TabItem(label='Input file path'):
-                        with gr.Row():
-                            model_path = gr.Textbox(label="model path")
+                        model_path = gr.Textbox(label="model path")
 
                     with gr.TabItem(label='Batch from directory'):
-                        with gr.Row():
-                            input_directory = gr.Textbox(label="Input Directory")
+                        input_directory = gr.Textbox(label="Input Directory")
 
                 with gr.Row():
                     precision = gr.Radio(choices=["fp32", "fp16", "bf16"], value="fp16", label="Precision")
@@ -39,6 +33,7 @@ def add_tab():
 
                 with gr.Row():
                     checkpoint_formats = gr.CheckboxGroup(choices=["ckpt", "safetensors"], value=["safetensors"], label="Checkpoint Format")
+                    size_limit = gr.Textbox(label="Size Limit (GB)", placeholder="Limit file size (GB)")
                     show_extra_options = gr.Checkbox(label="Show extra options", value=False)
 
                 with gr.Row():
@@ -53,8 +48,7 @@ def add_tab():
                     vae_conv = gr.Dropdown(specific_part_conv, value="convert", label="vae")
                     others_conv = gr.Dropdown(specific_part_conv, value="convert", label="others")
 
-                model_converter_convert = gr.Button(elem_id="model_converter_convert", label="Convert",
-                                                    variant='primary')
+                model_converter_convert = gr.Button(elem_id="model_converter_convert", label="Convert", variant='primary')
 
             with gr.Column(variant='panel'):
                 submit_result = gr.Textbox(elem_id="model_converter_result", show_label=False)
@@ -79,7 +73,8 @@ def add_tab():
                     others_conv,
                     fix_clip,
                     force_position_id,
-                    delete_known_junk_data
+                    delete_known_junk_data,
+                    size_limit
                 ],
                 outputs=[submit_result]
             )
