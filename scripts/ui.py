@@ -33,7 +33,7 @@ def add_tab():
 
                 with gr.Row():
                     checkpoint_formats = gr.CheckboxGroup(choices=["ckpt", "safetensors"], value=["safetensors"], label="Checkpoint Format")
-                    size_limit = gr.Textbox(label="Size Limit (GB)", placeholder="Limit file size (GB)")
+                    size_limit = gr.Textbox(label="Size Limit (GB)", placeholder="Limit file size (GB)", value="3.5")
                     show_extra_options = gr.Checkbox(label="Show extra options", value=False)
 
                 with gr.Row():
