@@ -29,7 +29,7 @@ def add_tab():
 
                 with gr.Row():
                     precision = gr.Radio(choices=["fp32", "fp16", "bf16"], value="fp16", label="Precision")
-                    m_type = gr.Radio(choices=["disabled", "no-ema", "ema-only"], value="disabled", label="Pruning Methods")
+                    m_type = gr.Radio(choices=["disabled", "no-ema", "ema-only"], value="no-ema", label="Pruning Methods")
 
                 with gr.Row():
                     checkpoint_formats = gr.CheckboxGroup(choices=["ckpt", "safetensors"], value=["safetensors"], label="Checkpoint Format")
@@ -38,8 +38,8 @@ def add_tab():
 
                 with gr.Row():
                     force_position_id = gr.Checkbox(label="Force CLIP position_id to int64 before convert", value=True)
-                    fix_clip = gr.Checkbox(label="Fix clip", value=False)
-                    delete_known_junk_data = gr.Checkbox(label="Delete known junk data", value=False)
+                    fix_clip = gr.Checkbox(label="Fix clip", value=True)
+                    delete_known_junk_data = gr.Checkbox(label="Delete known junk data", value=True)
 
                 with gr.Row(visible=False) as extra_options:
                     specific_part_conv = ["copy", "convert", "delete"]
