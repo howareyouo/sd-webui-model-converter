@@ -34,7 +34,6 @@ def add_tab():
                 with gr.Row():
                     checkpoint_formats = gr.CheckboxGroup(choices=["ckpt", "safetensors"], value=["safetensors"], label="Checkpoint Format")
                     size_limit = gr.Textbox(label="Size Limit (GB)", placeholder="Limit file size (GB)", value="3.5")
-                    show_extra_options = gr.Checkbox(label="Show extra options", value=False)
 
                 with gr.Row():
                     bake_in_vae = gr.Dropdown(choices=["None"] + list(sd_vae.vae_dict), value="None", label="Bake in VAE")
@@ -42,8 +41,12 @@ def add_tab():
 
                 with gr.Row():
                     force_position_id = gr.Checkbox(label="Force CLIP position_id to int64 before convert", value=True)
+
+                with gr.Row():
                     fix_clip = gr.Checkbox(label="Fix clip", value=True)
                     delete_known_junk_data = gr.Checkbox(label="Delete known junk data", value=True)
+                    delete_after_convert = gr.Checkbox(label="Delete after convert", value=True)
+                    show_extra_options = gr.Checkbox(label="Show extra options", value=False)
 
                 with gr.Row(visible=False) as extra_options:
                     specific_part_conv = ["copy", "convert", "delete"]
@@ -79,6 +82,7 @@ def add_tab():
                     fix_clip,
                     force_position_id,
                     delete_known_junk_data,
+                    delete_after_convert,
                     size_limit
                 ],
                 outputs=[submit_result]

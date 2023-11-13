@@ -136,7 +136,7 @@ def do_convert(model_info: MockModelInfo,
                precision, conv_type, custom_name,
                bake_in_vae,
                unet_conv, text_encoder_conv, vae_conv, others_conv,
-               fix_clip, force_position_id, delete_known_junk_data, size_limit):
+               fix_clip, force_position_id, delete_known_junk_data, delete_after_convert, size_limit):
 
     if size_limit and model_info.filesize <= float(size_limit) * 1024 ** 3:
         return f"Skip small model: {model_info.filename} [{sysinfo.pretty_bytes(model_info.filesize)}]"
@@ -153,7 +153,7 @@ def do_convert(model_info: MockModelInfo,
     shared.state.begin()
     shared.state.job = 'model-convert'
     shared.state.textinfo = f"Loading {model_info.filename}..."
-    print(f"[Converter] Loading {model_info.filename}...")
+    print(f"[Converter] Loading [{model_info.filename}]...")
 
     ok = {}
     state_dict = load_model(model_info.filepath)
@@ -247,6 +247,10 @@ def do_convert(model_info: MockModelInfo,
         else:
             torch.save({"state_dict": ok}, save_path)
         output += f"Checkpoint saved to {save_path}\n"
+        
+        if delete_after_convert:
+            print(f"[Converter] Deleting {model_info.filepath}...")
+            os.replace(save_path, model_info.filepath)
 
     shared.state.end()
     return output[:-1]
