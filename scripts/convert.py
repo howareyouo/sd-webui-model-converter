@@ -249,7 +249,7 @@ def do_convert(model_info: MockModelInfo,
         output += f"Checkpoint saved to {save_path}\n"
         
         if delete_after_convert:
-            print(f"[Converter] Deleting {model_info.filepath}...")
+            print(f"[Converter] Rename to {model_info.filepath}...")
             os.replace(save_path, model_info.filepath)
 
     shared.state.end()
