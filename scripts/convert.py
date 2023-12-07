@@ -233,14 +233,14 @@ def do_convert(model_info: MockModelInfo,
         save_name += f"-clip-fix"
 
     if custom_name != "":
-        save_name = custom_name
+        save_name = os.path.splitext(custom_name)[0]
 
     for fmt in checkpoint_formats:
         ext = ".safetensors" if fmt == "safetensors" else ".ckpt"
-        _save_name = save_name + ext
+        save_name += ext
 
-        save_path = os.path.join(ckpt_dir, _save_name)
-        print(f"[Converter] Saving to {save_path}...")
+        save_path = os.path.join(ckpt_dir, save_name)
+        print(f"[Converter] Saving to {sysinfo.shorten(save_path)}...")
 
         if fmt == "safetensors":
             safetensors.torch.save_file(ok, save_path)
@@ -249,8 +249,9 @@ def do_convert(model_info: MockModelInfo,
         output += f"Checkpoint saved to {save_path}\n"
         
         if delete_after_convert:
-            print(f"[Converter] Rename to {model_info.filepath}...")
-            os.replace(save_path, model_info.filepath)
+            final_path = os.path.splitext(model_info.filepath)[0] + ext
+            print(f"[Converter] Rename to {sysinfo.shorten(final_path)}...")
+            os.replace(save_path, final_path)
 
     shared.state.end()
     return output[:-1]
