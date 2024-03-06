@@ -6,6 +6,9 @@ from torch import Tensor
 from modules import shared
 from modules import sd_models, sd_vae
 from modules import sysinfo
+from colorama import init, Fore
+
+init(autoreset=True)
 
 # position_ids in clip is int64. model_ema.num_updates is int32
 dtypes_to_fp16 = {torch.float32, torch.float64, torch.bfloat16}
@@ -116,8 +119,13 @@ def convert_warp(model_name, model_path, directory, *args):
         _args = list(args)
         _args[3] = ""
 
+        num = 0
         for m in files:
-            do_convert(MockModelInfo(os.path.join(directory, m)), *_args)
+            result = do_convert(MockModelInfo(os.path.join(directory, m)), *_args)
+            if result.startswith("Checkpoint"):
+                num += 1
+
+        print(f"{Fore.LIGHTGREEN_EX}Done, {num} models converted!")
 
     elif model_path != "":
         if os.path.exists(model_path):

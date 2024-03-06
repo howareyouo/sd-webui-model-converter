@@ -15,6 +15,9 @@ def add_tab():
             with gr.Column(variant='panel'):
                 gr.HTML(value="<p>Converted checkpoints will be saved in your <b>checkpoint</b> directory.</p>")
                 with gr.Tabs():
+                    with gr.TabItem(label='Batch from directory'):
+                        input_directory = gr.Textbox(label="Input Directory", value=sd_models.model_path)
+
                     with gr.TabItem(label='Single process'):
                         with gr.Row():
                             model_name = gr.Dropdown(sd_models.checkpoint_tiles(), elem_id="model_converter_model_name", label="Model", allow_custom_value=True)
@@ -24,8 +27,6 @@ def add_tab():
                     with gr.TabItem(label='Input file path'):
                         model_path = gr.Textbox(label="model path")
 
-                    with gr.TabItem(label='Batch from directory'):
-                        input_directory = gr.Textbox(label="Input Directory")
 
                 with gr.Row():
                     precision = gr.Radio(choices=["fp32", "fp16", "bf16"], value="fp16", label="Precision")
