@@ -100,7 +100,6 @@ def fix_model(model, fix_clip=False, force_position_id=False):
 
     return model
 
-
 def convert_warp(model_name, model_path, directory, *args):
     if sum(map(bool, [model_name, model_path, directory])) != 1:
         print("[Converter] Check your inputs. Multiple input was set or missing input")
@@ -110,22 +109,21 @@ def convert_warp(model_name, model_path, directory, *args):
         if not os.path.exists(directory) or not os.path.isdir(directory):
             return "Error: path not exists or not dir"
 
-        files = [f for f in os.listdir(directory) if f.endswith(".ckpt") or f.endswith(".safetensors")]
-
-        if len(files) == 0:
-            return "Error: cant found model in directory"
-
         # remove custom filename in batch processing
         _args = list(args)
         _args[3] = ""
 
         num = 0
-        for m in files:
-            result = do_convert(MockModelInfo(os.path.join(directory, m)), *_args)
-            if result.startswith("Checkpoint"):
-                num += 1
+        for root, dirs, files in os.walk(directory, followlinks=True):
+            for file in files:
+                if file.endswith((".ckpt", ".safetensors")):
+                    filepath = os.path.join(root, file)
+                    result = do_convert(MockModelInfo(filepath), *_args)
+                    if result.startswith("Checkpoint"):
+                        num += 1
 
         print(f"{Fore.LIGHTGREEN_EX}Done, {num} models converted!")
+        return f"Done, {num} models converted!"
 
     elif model_path != "":
         if os.path.exists(model_path):
@@ -161,7 +159,7 @@ def do_convert(model_info: MockModelInfo,
     shared.state.begin()
     shared.state.job = 'model-convert'
     shared.state.textinfo = f"Loading {model_info.filename}..."
-    print(f"[Converter] Loading [{model_info.filename}]...")
+    print(f"[Converter] Loading [{Fore.YELLOW + model_info.filename + Fore.RESET}]...")
 
     ok = {}
     state_dict = load_model(model_info.filepath)
