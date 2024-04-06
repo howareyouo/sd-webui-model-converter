@@ -110,7 +110,9 @@ def is_sdxl_model(model):
     for k in list(model.keys()):
         if k.startswith("conditioner.embedders"):
             return True
-    return Falsedef convert_warp(model_name, model_path, directory, *args):
+    return False
+
+def convert_warp(model_name, model_path, directory, *args):
     if sum(map(bool, [model_name, model_path, directory])) != 1:
         print("[Converter] Check your inputs. Multiple input was set or missing input")
         return
