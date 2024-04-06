@@ -13,6 +13,7 @@ init(autoreset=True)
 # position_ids in clip is int64. model_ema.num_updates is int32
 dtypes_to_fp16 = {torch.float32, torch.float64, torch.bfloat16}
 dtypes_to_bf16 = {torch.float32, torch.float64, torch.float16}
+dtypes_to_fp8 = {torch.float32, torch.float64, torch.bfloat16, torch.float16}
 
 
 class MockModelInfo:
@@ -31,6 +32,10 @@ def conv_bf16(t: Tensor):
     return t.bfloat16() if t.dtype in dtypes_to_bf16 else t
 
 
+def conv_fp8(t: Tensor):
+    return t.to(torch.float8_e4m3fn) if t.dtype in dtypes_to_fp8 else t
+
+
 def conv_full(t):
     return t
 
@@ -40,6 +45,7 @@ _g_precision_func = {
     "fp32": conv_full,
     "fp16": conv_fp16,
     "bf16": conv_bf16,
+    "fp8": conv_fp8,
 }
 
 
@@ -48,7 +54,7 @@ def check_weight_type(k: str) -> str:
         return "unet"
     elif k.startswith("first_stage_model"):
         return "vae"
-    elif k.startswith("cond_stage_model"):
+    elif k.startswith("cond_stage_model") or k.startswith("conditioner.embedders"):
         return "clip"
     return "other"
 
@@ -100,7 +106,11 @@ def fix_model(model, fix_clip=False, force_position_id=False):
 
     return model
 
-def convert_warp(model_name, model_path, directory, *args):
+def is_sdxl_model(model):
+    for k in list(model.keys()):
+        if k.startswith("conditioner.embedders"):
+            return True
+    return Falsedef convert_warp(model_name, model_path, directory, *args):
     if sum(map(bool, [model_name, model_path, directory])) != 1:
         print("[Converter] Check your inputs. Multiple input was set or missing input")
         return
@@ -163,7 +173,13 @@ def do_convert(model_info: MockModelInfo,
 
     ok = {}
     state_dict = load_model(model_info.filepath)
-    fix_model(state_dict, fix_clip=fix_clip, force_position_id=force_position_id)
+    is_sdxl = is_sdxl_model(state_dict)
+
+    if not is_sdxl:
+        fix_model(state_dict, fix_clip=fix_clip, force_position_id=force_position_id)
+
+    if precision == "fp8":
+        assert torch.__version__ >= "2.1.0", "PyTorch 2.1.0 or newer is required for fp8 conversion"
 
     conv_func = _g_precision_func[precision]
 
@@ -253,7 +269,7 @@ def do_convert(model_info: MockModelInfo,
         else:
             torch.save({"state_dict": ok}, save_path)
         output += f"Checkpoint saved to {save_path}\n"
-        
+
         if delete_after_convert:
             final_path = os.path.splitext(model_info.filepath)[0] + ext
             print(f"[Converter] Rename to {sysinfo.shorten(final_path)}...")
