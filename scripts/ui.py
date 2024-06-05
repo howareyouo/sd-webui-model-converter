@@ -15,7 +15,7 @@ def add_tab():
             with gr.Column(variant='panel'):
                 gr.HTML(value="<p>Converted checkpoints will be saved in your <b>checkpoint</b> directory.</p>")
                 with gr.Tabs():
-                    with gr.TabItem(label='Batch from directory'):
+                    with gr.TabItem(label='Batch from directory') as batch_from_directory:
                         input_directory = gr.Textbox(label="Input Directory", value=sd_models.model_path)
 
                     with gr.TabItem(label='Single process') as single_process:
@@ -62,7 +62,7 @@ def add_tab():
                 submit_result = gr.Textbox(elem_id="model_converter_result", show_label=False)
 
             path_mode = gr.Number(value=0, visible=False)
-            for i, tab in enumerate([single_process, input_file_path, batch_from_directory]):
+            for i, tab in enumerate([batch_from_directory, single_process, input_file_path]):
                 tab.select(fn=lambda tabnum=i: tabnum, inputs=[], outputs=[path_mode])
 
             show_extra_options.change(

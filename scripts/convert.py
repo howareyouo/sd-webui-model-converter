@@ -112,35 +112,36 @@ def is_sdxl_model(model):
             return True
     return False
 
-def convert_warp(path_mode,model_name, model_path, directory, *args):
+def convert_warp(path_mode, model_name, model_path, directory, *args):
     match path_mode:
-        case 0:  # single process
+        case 0:  # batch from directory
+            if not os.path.exists(directory) or not os.path.isdir(directory):
+                return "Error: path not exists or not dir"
+
+            _args = list(args)
+            _args[3] = ""
+
+            num = 0
+            for root, dirs, files in os.walk(directory, followlinks=True):
+                for file in files:
+                    if file.endswith((".ckpt", ".safetensors")):
+                        filepath = os.path.join(root, file)
+                        result = do_convert(MockModelInfo(filepath), *_args)
+                        if result.startswith("Checkpoint"):
+                            num += 1
+
+            print(f"{Fore.LIGHTGREEN_EX}Done, {num} models converted!")
+            return f"Done, {num} models converted!"
+
+        case 1:  # single process
             if model_info := sd_models.checkpoints_list.get(model_name, None):
                 return do_convert(MockModelInfo(model_info.filename), *args)
             return "Error: model not found"
 
-        case 1:  # input file path
+        case 2:  # input file path
             if os.path.exists(model_path):
                 return do_convert(MockModelInfo(model_path), *args)
             return f'Error: model path "{model_path}" not exists'
-
-        # remove custom filename in batch processing
-        _args = list(args)
-        _args[3] = ""
-
-            num = 0
-        for root, dirs, files in os.walk(directory, followlinks=True):
-            for file in files:
-                if file.endswith((".ckpt", ".safetensors")):
-                    filepath = os.path.join(root, file)
-                    result = do_convert(MockModelInfo(filepath), *_args)
-                    if result.startswith("Checkpoint"):
-                        num += 1
-
-        print(f"{Fore.LIGHTGREEN_EX}Done, {num} models converted!")
-        return f"Done, {num} models converted!"
-
-            return "Batch processing done"
 
         case _:
             return f"Error: unknown mode {path_mode}"
@@ -270,6 +271,7 @@ def do_convert(model_info: MockModelInfo,
         output += f"Checkpoint saved to {save_path}\n"
 
         if delete_after_convert:
+            os.remove(model_info.filepath)
             final_path = os.path.splitext(model_info.filepath)[0] + ext
             print(f"[Converter] Rename to {sysinfo.shorten(final_path)}...")
             os.replace(save_path, final_path)
